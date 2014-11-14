@@ -30,8 +30,8 @@ def dtw(array1, array2):
     """
     s = np.zeros((array1.size+1, array2.size+1))
 
-    s[:,0] = 100
-    s[0,:] = 100
+    s[:,0] = 1e6
+    s[0,:] = 1e6
     s[0,0] = 0.0
 
     # Set up symbolic variables
