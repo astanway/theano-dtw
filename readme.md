@@ -1,3 +1,3 @@
 `python dtw.py`
 
-i'm in ur GPUs, warping ur paths
+i'm in ur GPUs, warping ur timeseries
