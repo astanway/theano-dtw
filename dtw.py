@@ -6,10 +6,10 @@ def inner(i, square, j, vec1, vec2):
     """
     The inner loop that calculates the actual warp path at i,j
     """
-    cost = T.abs_(vec1[i] - vec2[j])
+    diff = T.abs_(vec1[i] - vec2[j])
     stack = T.stack(square[i, j+1], square[i+1, j], square[i, j])
-    dist = cost + T.min(stack)
-    square = T.set_subtensor(square[i+1, j+1], dist)
+    distance = diff + T.min(stack)
+    square = T.set_subtensor(square[i+1, j+1], distance)
 
     return square
 
@@ -17,11 +17,11 @@ def outer(j, square, inner_loop, vec1, vec2):
     """
     The outer loop that calculates warp paths per row
     """
-    cost, _ = scan(fn=inner,
+    path, _ = scan(fn=inner,
                     outputs_info=[dict(initial=square, taps=[-1])],
                     non_sequences=[j, vec1, vec2],
                     sequences=inner_loop)
-    return cost[-1]
+    return path[-1]
 
 def dtw(array1, array2):
     """
@@ -44,13 +44,13 @@ def dtw(array1, array2):
     inner_loop = T.arange(vec2_length, dtype='int64')
 
     # Run the outer loop
-    cost, _ = scan(fn=outer,
+    path, _ = scan(fn=outer,
                     outputs_info=[dict(initial=square, taps=[-1])],
                     non_sequences=[inner_loop, vec1, vec2],
                     sequences=outer_loop)
 
     # Compile the function
-    theano_square = function([vec1, vec2, square, vec1_length, vec2_length], cost, on_unused_input='warn')
+    theano_square = function([vec1, vec2, square, vec1_length, vec2_length], path, on_unused_input='warn')
 
     # Call the compiled function and return the actual distance
     return theano_square(array1, array2, s, array1.size, array2.size)[-1][array1.size, array2.size]
